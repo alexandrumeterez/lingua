@@ -1,4 +1,6 @@
 *.pyc
+data/
+tokenizers/
 .vscode
 *.ipynb
 slurm-*.out

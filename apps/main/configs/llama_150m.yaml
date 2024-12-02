@@ -1,0 +1,87 @@
+dump_dir: /n/netscratch/kempner_pehlevan_lab/Everyone/dump_dir_lingua/batch_size_128
+name: llama_150m
+steps: 1_000
+probe_freq: null
+seed: 777
+
+optim:
+  lr: 3e-3
+  weight_decay: 0.033
+  warmup: 500
+  lr_min_ratio: 0.000001
+  clip: 1.0
+
+distributed:
+  fsdp_type: full_shard
+  compile: true
+  model_dtype: bf16
+  matmul_allow_tf32: false
+  selective_activation_checkpointing: false
+  tp_size: 1
+
+model:
+  dim: 768
+  n_layers: 12
+  n_heads: 8
+
+data:
+  root_dir: /n/netscratch/kempner_pehlevan_lab/Everyone/lingua/data/
+  sources:
+    fineweb_edu_10bt_shuffled: 100.0
+  batch_size: 128
+  prefetch_size: 1024
+  seq_len: 1024
+  n_views: 2
+  load_async: true
+  add_bos: true
+  add_eos: true
+  tokenizer:
+    name: sp
+    path: /n/netscratch/kempner_pehlevan_lab/Everyone/lingua/tokenizers/tokenizer.model
+
+profiling:
+  run: false
+  mem_warmup: 0
+  mem_steps: 4
+  profile_warmup: 100
+  profile_steps: 4
+
+checkpoint:
+  dump:
+    every: 2500
+    keep: 3
+  eval:
+    every: 5000
+    keep: -1
+
+logging:
+  freq: 1
+
+async_eval_gpus: 2
+eval:
+  harness:
+    tasks:
+      - hellaswag
+      # - task: boolq
+      #   dataset_kwargs:
+      #     trust_remote_code: true
+      # - piqa
+      # - task: social_iqa
+      #   dataset_kwargs:
+      #     trust_remote_code: true
+      # - winogrande
+      # - openbookqa
+      # - arc_easy
+      # - arc_challenge
+      # - race
+      # - commonsense_qa
+      # - copa
+      # - coqa
+      # - task: nq_open
+      #   num_fewshot: 5
+      # - triviaqa
+  validation:
+    max_steps: 1000
+  generator:
+    max_tokens: 16384
+    dtype: bf16
