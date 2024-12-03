@@ -103,6 +103,22 @@ def lr_wsd(
 
     return lr
 
+# Modified learning rate scheduler with warmup, stable, and linear cooldown
+def lr_warmup_stable_cooldown(step, warmup, n_steps, cooldown_fraction, min_ratio):
+    cooldown_start = int(n_steps * (1 - cooldown_fraction))
+    cooldown_length = n_steps - cooldown_start
+
+    if step < warmup:
+        lr = float(step) / warmup  # Linear warmup
+    elif step < cooldown_start:
+        lr = 1.0  # Stable phase
+    else:
+        # Linear cooldown
+        step_in_cooldown = step - cooldown_start
+        lr = 1.0 - step_in_cooldown * (1.0 - min_ratio) / cooldown_length
+
+    return lr
+
 
 def build_lr_fn(args: OptimArgs, n_steps: int):
     if args.scheduler == "constant":
@@ -136,6 +152,14 @@ def build_lr_fn(args: OptimArgs, n_steps: int):
             decay_fraction=args.decay_fraction,
             cycle_length=args.cycle_length,
             min_ratio=args.lr_min_ratio,
+        )
+    elif args.scheduler == 'warmup_stable_cooldown':
+        lr_fn = partial(
+            lr_warmup_stable_cooldown,
+            warmup=args.warmup,
+            n_steps=n_steps,
+            cooldown_fraction=args.decay_fraction,
+            min_ratio=args.lr_min_ratio
         )
     else:
         raise NotImplementedError(f"Unknown scheduler: {args.scheduler}")

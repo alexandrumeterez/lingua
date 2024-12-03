@@ -11,9 +11,10 @@ optim:
   warmup: 500
   lr_min_ratio: 0.000001
   clip: 1.0
+  scheduler: warmup_stable_cooldown
 
 distributed:
-  fsdp_type: full_shard
+  fsdp_type: full_shard 
   compile: true 
   dp_shard: 4
   model_dtype: bf16
@@ -37,11 +38,11 @@ data:
   load_async: true
   add_bos: true
   add_eos: true
-  tokenizer:
-    name: bytes
   # tokenizer:
-  #   name: sp
-  #   path: /n/netscratch/kempner_pehlevan_lab/Everyone/lingua/tokenizers/tokenizer.model
+    # name: bytes
+  tokenizer:
+    name: sp
+    path: /n/netscratch/kempner_pehlevan_lab/Everyone/lingua/tokenizers/tokenizer.model
 
 profiling:
   run: false

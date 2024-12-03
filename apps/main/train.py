@@ -68,6 +68,8 @@ from lingua.probe import AutoProbeD
 from lingua.stool import StoolArgs, launch_job
 
 import wandb
+# from torch.optim.swa_utils import AveragedModel, get_ema_multi_avg_fn
+from apps.main.optimizers import EMAOptimizer
 
 logger = logging.getLogger()
 
@@ -82,7 +84,7 @@ class TrainArgs:
     # Number of gradient accumulation steps
     # Total batch size is batch_size*grad_acc_steps
     grad_acc_steps: int = 1
-
+    ema_decay: float = 0.99
     gc_collect_freq: int = 1000
     probe_freq: Optional[int] = None
 
@@ -253,7 +255,7 @@ def train(args: TrainArgs):
         with torch.device("meta"):
             model = LMTransformer(args.model)
         logger.info("Model is built !")
-
+        
         model_param_count = get_num_params(model)
 
         model = parallelize_model(
@@ -295,6 +297,9 @@ def train(args: TrainArgs):
         logger.info(f"GPU memory usage: {gpu_memory_monitor}")
         # build optimizer after apply parallelisms to the model
         optimizer, scheduler = build_optimizer(model, args.optim, args.steps)
+        if args.ema_decay > 0:
+            optimizer = EMAOptimizer(optimizer, device=torch.device('cuda'), decay=args.ema_decay)
+
         data_loader_state = init_dataloader_state_from_args(
             args.data, dp_rank, dp_degree
         )
