@@ -293,7 +293,6 @@ def train(args: TrainArgs):
             f"with {gpu_memory_monitor.device_capacity_gib:.2f}GiB memory"
         )
         logger.info(f"GPU memory usage: {gpu_memory_monitor}")
-
         # build optimizer after apply parallelisms to the model
         optimizer, scheduler = build_optimizer(model, args.optim, args.steps)
         data_loader_state = init_dataloader_state_from_args(
@@ -348,7 +347,6 @@ def train(args: TrainArgs):
             # We constrain train_state.acc_step to be in range 0 to args.grad_acc_steps - 1
             train_state.acc_step += 1
             train_state.acc_step = train_state.acc_step % args.grad_acc_steps
-
             # get batch
             curr_lr = float(optimizer.param_groups[0]["lr"])
             data_load_start = timer()
@@ -363,7 +361,6 @@ def train(args: TrainArgs):
                 # we do garbage collection manually otherwise different processes
                 # run the GC at different times so they slow down the whole pipeline
                 gc.collect()
-
             input_ids = batch[:, :, 0].cuda()
             labels = batch[:, :, 1].cuda()
             data_load_time = round(timer() - data_load_start, 4)
@@ -413,7 +410,7 @@ def train(args: TrainArgs):
                 ), "Probe model shouldn't have grads at this point"
 
             loss = model(input_ids, labels)
-
+            print(f"Loss: {loss.item()}")
             # We scale loss with grad_acc_steps so the gradient is the same
             # regardless of grad_acc_steps
             loss = loss / args.grad_acc_steps

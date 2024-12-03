@@ -380,7 +380,6 @@ def train(args: TrainArgs):
                 # we do garbage collection manually otherwise different processes
                 # run the GC at different times so they slow down the whole pipeline
                 gc.collect()
-
             input_ids = batch[:, :, 0].cuda()
             labels = batch[:, :, 1].cuda()
             data_load_time = round(timer() - data_load_start, 4)
@@ -428,9 +427,7 @@ def train(args: TrainArgs):
                 assert (
                     next(probe_mod.parameters()).grad is None
                 ), "Probe model shouldn't have grads at this point"
-
             loss = model(input_ids, labels)
-
             # We scale loss with grad_acc_steps so the gradient is the same
             # regardless of grad_acc_steps
             loss = loss / args.grad_acc_steps

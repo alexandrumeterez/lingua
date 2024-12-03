@@ -85,7 +85,7 @@ def main(dataset, memory, data_dir, seed=42, nchunks=32):
     }[dataset]
     src_dir = f"{data_dir}/{dataset}"
     out_dir = f"{src_dir}_shuffled"
-    os.makedirs(out_dir, exist_ok=True)
+    # os.makedirs(out_dir, exist_ok=True)
     work_dir = src_dir  # Directory of this Python file
     prefix = f"{dataset}.chunk."
     orig_extension = {
@@ -109,27 +109,27 @@ def main(dataset, memory, data_dir, seed=42, nchunks=32):
     suffix = ".jsonl"
     k_validation = 10000  # Number of lines to take from each chunk for validation
 
-    # Setup terashuf
-    terashuf_dir = setup_terashuf(work_dir)
+    # # Setup terashuf
+    # terashuf_dir = setup_terashuf(work_dir)
 
-    # Download dataset
-    download_dataset(repo_id, src_dir, allow_patterns)
+    # # Download dataset
+    # download_dataset(repo_id, src_dir, allow_patterns)
 
-    if "fineweb" in dataset:
-        parquet_to_jsonl(dataset, work_dir, src_dir, src_dir)
+    # if "fineweb" in dataset:
+    #     parquet_to_jsonl(dataset, work_dir, src_dir, src_dir)
 
-    # Set up environment variables
-    os.environ["MEMORY"] = f"{memory}"
-    os.environ["SEED"] = f"{seed}"
+    # # Set up environment variables
+    # os.environ["MEMORY"] = f"{memory}"
+    # os.environ["SEED"] = f"{seed}"
 
-    # Run the original shuffling and splitting command
-    terashuf_executable = os.path.join(terashuf_dir, "terashuf")
-    run_command(
-        f"ulimit -n 100000 && "
-        f"find {src_dir} -type f -name '*{orig_extension}' -print0 | xargs -0 {cat_command} | {terashuf_executable} | "
-        f"split -n r/{nchunks} -d --suffix-length 2 --additional-suffix {suffix} - {out_dir}/{prefix}"
-        "; trap 'echo \"Caught signal 13, exiting with code 1\"; exit 1' SIGPIPE;"
-    )
+    # # Run the original shuffling and splitting command
+    # terashuf_executable = os.path.join(terashuf_dir, "terashuf")
+    # run_command(
+    #     f"ulimit -n 100000 && "
+    #     f"find {src_dir} -type f -name '*{orig_extension}' -print0 | xargs -0 {cat_command} | {terashuf_executable} | "
+    #     f"split -n r/{nchunks} -d --suffix-length 2 --additional-suffix {suffix} - {out_dir}/{prefix}"
+    #     "; trap 'echo \"Caught signal 13, exiting with code 1\"; exit 1' SIGPIPE;"
+    # )
 
     # Create validation set and remove lines from chunks
     validation_file = f"{out_dir}/{dataset}.val{suffix}"
